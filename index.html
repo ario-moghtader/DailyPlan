@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>برنامه‌ریزی شخصی من</title>
     <style>
-        /* استایل‌ها همانند قبل باقی می‌مانند */
         * {
             margin: 0;
             padding: 0;
@@ -135,7 +134,9 @@
             font-weight: 500;
             position: relative;
             flex-direction: column;
-            padding: 2px;
+            padding: 5px;
+            min-height: 45px;
+            font-size: 14px;
         }
         
         .day:hover {
@@ -524,6 +525,11 @@
 
             .data-management {
                 grid-template-columns: 1fr;
+            }
+            
+            .day {
+                min-height: 40px;
+                font-size: 12px;
             }
         }
     </style>
@@ -1096,7 +1102,8 @@
             document.getElementById('todayTasks').textContent = today;
             document.getElementById('withNotes').textContent = withNotes;
         }
-        
+
+    
         // به‌روزرسانی نوار پیشرفت
         function updateProgress() {
             let doneCount = 0;
