@@ -529,9 +529,8 @@
         }
     </style>
     
-    <!-- بارگذاری کتابخانه‌های مورد نیاز -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/moment-jalaali@0.9.1/build/moment-jalaali.js"></script>
+    <!-- بارگذاری کتابخانه jalaali-js -->
+    <script src="https://cdn.jsdelivr.net/npm/jalaali-js@1.1.0/dist/jalaali-js.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -646,9 +645,10 @@
     <script>
         // داده‌های برنامه
         let tasks = JSON.parse(localStorage.getItem('dailyTasks')) || {};
-        let currentDate = moment();
-        let currentYear = currentDate.jYear();
-        let currentMonth = currentDate.jMonth() + 1; // ماه‌ها از 1 شروع می‌شوند
+        let currentDate = new Date();
+        let currentJalaali = jalaali.toJalaali(currentDate);
+        let currentYear = currentJalaali.jy;
+        let currentMonth = currentJalaali.jm;
         let selectedDate = getTodayPersianDate();
         
         // ماه‌های فارسی
@@ -764,8 +764,9 @@
         
         // دریافت تاریخ امروز به شمسی
         function getTodayPersianDate() {
-            const today = moment();
-            return `${today.jYear()}/${today.jMonth() + 1}/${today.jDate()}`;
+            const today = new Date();
+            const jToday = jalaali.toJalaali(today);
+            return `${jToday.jy}/${jToday.jm}/${jToday.jd}`;
         }
         
         // فرمت‌بندی تاریخ برای نمایش
@@ -782,16 +783,25 @@
         // بررسی آخر هفته (جمعه)
         function isWeekend(dateStr) {
             const [y, m, d] = dateStr.split('/').map(Number);
-            const date = moment(`${y}/${m}/${d}`, 'jYYYY/jM/jD');
-            return date.day() === 5; // 5 = جمعه
+            const gDate = jalaali.toGregorian(y, m, d);
+            const date = new Date(gDate.gy, gDate.gm - 1, gDate.gd);
+            return date.getDay() === 5; // 5 = جمعه
         }
         
         // تعداد روزهای ماه شمسی
         function getDaysInJalaliMonth(year, month) {
-            if (month <= 6) return 31;
-            if (month <= 11) return 30;
-            // اسفند - بررسی سال کبیسه
-            return moment.jIsLeapYear(year) ? 30 : 29;
+            return jalaali.jalaaliMonthLength(year, month);
+        }
+        
+        // محاسبه روز هفته برای تاریخ شمسی
+        function getJalaliDayOfWeek(year, month, day) {
+            const gDate = jalaali.toGregorian(year, month, day);
+            const date = new Date(gDate.gy, gDate.gm - 1, gDate.gd);
+            let dayOfWeek = date.getDay(); // 0=یکشنبه, 1=دوشنبه, ..., 6=شنبه
+            
+            // تبدیل به فرمت ایرانی: 0=شنبه, 1=یکشنبه, ..., 6=جمعه
+            dayOfWeek = (dayOfWeek + 1) % 7;
+            return dayOfWeek;
         }
         
         // تولید تقویم برای ماه و سال مشخص
@@ -803,10 +813,7 @@
             const daysInMonth = getDaysInJalaliMonth(year, month);
             
             // روز اول ماه شمسی
-            const firstDay = moment(`${year}/${month}/1`, 'jYYYY/jM/jD');
-            
-            // روز هفته برای روز اول ماه (0=شنبه, 1=یکشنبه, ...)
-            let firstDayOfWeek = firstDay.day();
+            const firstDayOfWeek = getJalaliDayOfWeek(year, month, 1);
             
             // روزهای ماه قبل
             let prevMonth = month - 1;
